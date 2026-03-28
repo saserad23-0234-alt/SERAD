@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sittie Serad — Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #08070d;
+    --bg2: #0e0b18;
+    --sidebar: #0b0914;
+    --card: #110e1e;
+    --card2: #160f28;
+    --text: #e8e0f8;
+    --muted: #7a6d96;
+    --faint: #2a2040;
+    --border: #1e1730;
+    --accent: #9b5de5;
+    --accent2: #c77dff;
+    --accent3: #7b2d8b;
+    --glow: rgba(155,93,229,0.22);
+    --glow2: rgba(155,93,229,0.08);
+    --shadow: 0 4px 32px rgba(0,0,0,0.5);
+    --shadow-hover: 0 12px 48px rgba(155,93,229,0.25);
+    --radius: 18px;
+    --sidebar-w: 74px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.35;
+  }
+
+  .blob {
+    position: fixed; border-radius: 50%; filter: blur(90px);
+    pointer-events: none; z-index: 0; opacity: 0.18;
+    animation: blobDrift ease-in-out infinite;
+  }
+  .blob1 { width: 500px; height: 500px; background: radial-gradient(circle, #7b2d8b, transparent 70%); top: -100px; right: 5%; animation-duration: 20s; }
+  .blob2 { width: 400px; height: 400px; background: radial-gradient(circle, #4a1a6b, transparent 70%); bottom: 10%; left: -80px; animation-duration: 27s; animation-delay: -10s; }
+  .blob3 { width: 250px; height: 250px; background: radial-gradient(circle, #c77dff, transparent 70%); top: 50%; left: 35%; animation-duration: 15s; animation-delay: -5s; opacity: 0.07; }
+  @keyframes blobDrift {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(40px,-30px) scale(1.05); }
+    66% { transform: translate(-30px,20px) scale(0.97); }
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--sidebar);
+    height: 100vh;
+    position: fixed; left: 0; top: 0;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 22px 0;
+    gap: 6px;
+    border-right: 1px solid var(--border);
+    z-index: 100;
+  }
+
+  .logo {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 20px var(--glow);
+    animation: popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+    letter-spacing: -0.5px;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .nav-links { display: flex; flex-direction: column; gap: 4px; align-items: center; flex: 1; }
+
+  .nav-btn {
+    width: 46px; height: 46px; border-radius: 12px; border: none;
+    background: transparent; color: var(--muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+    font-size: 18px; position: relative;
+  }
+  .nav-btn:hover { background: var(--glow2); color: var(--accent2); transform: scale(1.08); }
+  .nav-btn.active {
+    background: var(--glow2); color: var(--accent2);
+    box-shadow: 0 0 14px var(--glow);
+  }
+  .nav-btn.active::before {
+    content: '';
+    position: absolute; left: -4px;
+    width: 3px; height: 55%; top: 22.5%;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .nav-btn svg { width: 20px; height: 20px; }
+  .nav-tooltip {
+    position: absolute; left: 62px;
+    background: var(--card2); color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 8px;
+    font-size: 11px; white-space: nowrap;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s; z-index: 200;
+    font-weight: 600; letter-spacing: 0.5px;
+  }
+  .nav-btn:hover .nav-tooltip { opacity: 1; }
+  .sidebar-bottom { margin-top: auto; padding-bottom: 6px; }
+
+  .theme-toggle {
+    width: 46px; height: 46px; border-radius: 12px; border: none;
+    background: transparent; color: var(--muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+    position: relative;
+  }
+  .theme-toggle:hover { background: var(--glow2); color: var(--accent2); transform: scale(1.08) rotate(20deg); }
+
+  /* ─── MAIN ─── */
+  main { margin-left: var(--sidebar-w); flex: 1; padding: 28px 32px; min-height: 100vh; position: relative; z-index: 1; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: flex-end;
+    margin-bottom: 28px;
+    animation: fadeDown 0.5s 0.1s both;
+  }
+  .profile-chip {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 6px 14px 6px 6px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .profile-chip:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--glow); }
+  .avatar-sm {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 11px;
+    box-shadow: 0 0 10px var(--glow);
+    overflow: hidden; flex-shrink: 0;
+  }
+  .avatar-sm img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+  .profile-name { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.3px; }
+  .profile-role { font-size: 10px; color: var(--muted); margin-top: 1px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* ─── PAGE SECTIONS ─── */
+  .page-section { display: none; animation: fadeUp 0.4s both; }
+  .page-section.active { display: block; }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px; font-weight: 300;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+    background: linear-gradient(135deg, #fff 20%, var(--accent2) 80%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .section-sub { color: var(--muted); font-size: 13px; margin-bottom: 30px; letter-spacing: 0.5px; }
+  .page-header { margin-bottom: 24px; }
+
+  /* ─── HOME / HERO PAGE ─── */
+  .hero-wrapper {
+    min-height: calc(100vh - 120px);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .hero-card {
+    max-width: 780px; width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 60px 50px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    position: relative; overflow: hidden;
+    animation: fadeUp 0.6s 0.1s both;
+  }
+
+  .hero-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+  }
+
+  .hero-card::after {
+    content: '';
+    position: absolute; top: -80px; right: -80px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, var(--accent3) 0%, transparent 65%);
+    border-radius: 50%; opacity: 0.2; pointer-events: none;
+  }
+
+  .hero-card .corner-glow-bl {
+    position: absolute; bottom: -60px; left: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    border-radius: 50%; opacity: 0.1; pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(155,93,229,0.12);
+    border: 1px solid rgba(155,93,229,0.3);
+    border-radius: 30px;
+    padding: 6px 18px;
+    font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 28px;
+    animation: fadeUp 0.5s 0.2s both;
+  }
+  .hero-badge span { font-size: 14px; }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.05;
+    margin-bottom: 22px;
+    background: linear-gradient(135deg, #ffffff 0%, #e8d8ff 40%, var(--accent2) 75%, var(--accent) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    animation: fadeUp 0.5s 0.3s both;
+  }
+
+  .hero-divider {
+    width: 60px; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    margin: 0 auto 24px;
+    animation: fadeUp 0.5s 0.35s both;
+  }
+
+  .hero-subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 400; font-style: italic;
+    color: var(--accent2);
+    margin-bottom: 18px;
+    animation: fadeUp 0.5s 0.4s both;
+  }
+
+  .hero-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.85;
+    max-width: 560px;
+    margin: 0 auto 36px;
+    font-weight: 400;
+    animation: fadeUp 0.5s 0.45s both;
+  }
+  .hero-desc strong { color: var(--text); font-weight: 600; }
+
+  .hero-stats {
+    display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;
+    margin-bottom: 36px;
+    animation: fadeUp 0.5s 0.5s both;
+  }
+  .hero-stat {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 22px;
+    text-align: center;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    cursor: default;
+    min-width: 110px;
+  }
+  .hero-stat:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 18px var(--glow);
+    transform: translateY(-3px);
+  }
+  .hero-stat-num {
+    font-size: 24px; font-weight: 800; letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 4px;
+  }
+  .hero-stat-label {
+    font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+  }
+
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    color: #fff; border: none;
+    border-radius: 14px; padding: 14px 32px;
+    font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 4px 24px var(--glow);
+    transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+    animation: fadeUp 0.5s 0.55s both;
+  }
+  .hero-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 36px rgba(155,93,229,0.45);
+    filter: brightness(1.08);
+  }
+  .hero-cta svg { width: 16px; height: 16px; }
+
+  .hero-dots {
+    position: absolute; bottom: 24px; right: 28px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    opacity: 0.18;
+  }
+  .hero-dots span {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--accent2); display: block;
+  }
+
+  /* ─── ABOUT PAGE ─── */
+  .about-center-card { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+  .about-hero {
+    background: var(--card); border: 1px solid var(--border); border-radius: 22px;
+    padding: 40px 36px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+    animation: fadeUp 0.5s 0.1s both; position: relative; overflow: hidden;
+  }
+  .about-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent); }
+  .about-hero::after { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, var(--accent3) 0%, transparent 65%); border-radius: 50%; opacity: 0.2; pointer-events: none; }
+
+  .photo-ring {
+    width: 180px; height: 180px; border-radius: 50%;
+    border: 2px solid transparent;
+    background: linear-gradient(var(--card), var(--card)) padding-box, linear-gradient(135deg, var(--accent), var(--accent2)) border-box;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden; position: relative;
+    animation: float 4s ease-in-out infinite; transition: box-shadow 0.3s; flex-shrink: 0;
+  }
+  .photo-ring:hover { box-shadow: 0 0 30px var(--glow); }
+  .photo-ring-inner {
+    width: 168px; height: 168px; border-radius: 50%;
+    background: var(--bg2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; overflow: hidden; position: relative;
+  }
+  .photo-ring-inner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .photo-ring-inner svg { width: 36px; height: 36px; color: var(--faint); }
+  .photo-ring-inner span { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; font-weight: 500; }
+
+  .photo-ring:hover .photo-overlay { opacity: 1; }
+  .photo-overlay {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: rgba(155,93,229,0.35); backdrop-filter: blur(2px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; opacity: 0; transition: opacity 0.25s; z-index: 5;
+    color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .photo-overlay svg { width: 22px; height: 22px; }
+
+  .about-name { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 400; color: var(--text); text-align: center; margin-bottom: 2px; letter-spacing: 0.3px; }
+  .about-degree { font-size: 12px; color: var(--muted); text-align: center; letter-spacing: 1px; text-transform: uppercase; }
+
+  .social-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .social-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 10px;
+    font-size: 12px; text-decoration: none; border: none; cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s; font-weight: 700; border: 1px solid var(--border);
+    font-family: 'Syne', sans-serif;
+  }
+  .social-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(155,93,229,0.25); border-color: var(--accent); }
+  .social-btn.email { background: rgba(234,67,53,0.12); color: #ea4335; }
+  .social-btn.gh { background: rgba(255,255,255,0.05); color: var(--text); font-size: 12px; }
+  .social-btn .icon { font-size: 14px; }
+
+  .about-divider { width: 80%; height: 1px; background: linear-gradient(90deg, transparent, var(--faint), transparent); margin: 4px auto; }
+
+  .about-bio { font-family: 'Cormorant Garamond', serif; font-size: 18px; line-height: 1.9; color: var(--muted); text-align: center; max-width: 600px; font-weight: 300; font-style: italic; }
+  .about-bio strong { color: var(--accent2); font-style: normal; font-weight: 400; }
+
+  .skills-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 26px; box-shadow: var(--shadow);
+    animation: fadeUp 0.5s 0.2s both; position: relative; overflow: hidden;
+  }
+  .skills-card::before { content: ''; position: absolute; bottom: 0; right: 0; width: 120px; height: 120px; background: radial-gradient(circle, var(--accent3) 0%, transparent 70%); opacity: 0.15; pointer-events: none; }
+  .card-label { font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .card-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--faint), transparent); }
+
+  .skills-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .skill-chip {
+    padding: 7px 16px; border-radius: 30px; font-size: 11px; font-weight: 600;
+    background: var(--bg2); color: var(--muted); border: 1px solid var(--border); letter-spacing: 0.5px;
+    transition: transform 0.2s, background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s; cursor: default;
+  }
+  .skill-chip:hover { transform: translateY(-2px); background: rgba(155,93,229,0.12); color: var(--accent2); border-color: var(--accent); box-shadow: 0 4px 14px var(--glow); }
+
+  /* ─── PROJECTS ─── */
+  .projects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .project-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow);
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; animation: fadeUp 0.5s both; position: relative; overflow: hidden;
+  }
+  .project-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0; transition: opacity 0.3s; }
+  .project-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: rgba(155,93,229,0.3); }
+  .project-card:hover::before { opacity: 1; }
+
+  .project-thumb { width: 100%; height: 120px; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; font-size: 34px; overflow: hidden; position: relative; }
+  .project-tag { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+  .project-name { font-weight: 700; font-size: 14px; margin-bottom: 6px; line-height: 1.3; }
+  .project-desc { font-size: 12px; color: var(--muted); line-height: 1.65; margin-bottom: 16px; }
+
+  .file-attach-area { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 4px; }
+  .file-attach-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+  .file-drop-zone { border: 1px dashed var(--faint); border-radius: 10px; padding: 14px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s, color 0.2s; color: var(--muted); font-size: 11px; font-weight: 500; }
+  .file-drop-zone:hover { border-color: var(--accent); background: rgba(155,93,229,0.05); color: var(--accent2); }
+  .file-list { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+  .file-item { display: flex; align-items: center; gap: 9px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s; }
+  .file-item:hover { background: rgba(155,93,229,0.07); border-color: var(--accent); transform: translateX(2px); }
+  .file-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .file-icon.pdf { background: rgba(242,100,100,0.12); }
+  .file-icon.img { background: rgba(93,201,148,0.12); }
+  .file-icon.doc { background: rgba(155,93,229,0.12); }
+  .file-icon.xls { background: rgba(34,197,94,0.12); }
+  .file-icon.other { background: rgba(249,200,70,0.1); }
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-size { font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .file-actions { display: flex; gap: 3px; flex-shrink: 0; }
+  .file-btn { width: 24px; height: 24px; border-radius: 7px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; transition: background 0.2s, transform 0.2s; background: transparent; color: var(--muted); }
+  .file-btn:hover { background: rgba(155,93,229,0.1); color: var(--accent2); transform: scale(1.1); }
+  .file-btn.delete:hover { background: rgba(242,100,100,0.1); color: #f26464; }
+
+  /* upload progress */
+  .upload-progress {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px; margin-top: 8px;
+    font-size: 11px; color: var(--muted);
+  }
+  .upload-spinner { width: 14px; height: 14px; border: 2px solid var(--faint); border-top-color: var(--accent2); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; animation: fadeIn 0.2s both; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 22px; width: 90vw; max-width: 960px; height: 88vh; display: flex; flex-direction: column; box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(155,93,229,0.15); overflow: hidden; animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .modal-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .modal-title { font-weight: 700; font-size: 14px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.3px; }
+  .modal-close { width: 32px; height: 32px; border-radius: 9px; border: none; background: rgba(242,100,100,0.1); color: #f26464; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: background 0.2s, transform 0.2s; flex-shrink: 0; }
+  .modal-close:hover { background: rgba(242,100,100,0.2); transform: scale(1.1); }
+  .modal-download { padding: 6px 14px; border-radius: 9px; border: 1px solid var(--border); background: rgba(155,93,229,0.1); color: var(--accent2); cursor: pointer; font-size: 11px; font-weight: 700; font-family: 'Syne', sans-serif; display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px; transition: background 0.2s, transform 0.2s, border-color 0.2s; }
+  .modal-download:hover { background: rgba(155,93,229,0.18); transform: translateY(-1px); border-color: var(--accent); }
+  .modal-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: var(--bg); }
+  .modal-body iframe, .modal-body img { width: 100%; height: 100%; border: none; object-fit: contain; }
+  .modal-unsupported { text-align: center; color: var(--muted); padding: 40px; }
+  .modal-unsupported .big-icon { font-size: 52px; margin-bottom: 16px; }
+  .modal-unsupported p { font-size: 13px; margin-bottom: 20px; line-height: 1.7; }
+
+  /* ─── EXCEL PREVIEW ─── */
+  .excel-preview-wrap { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+  .excel-sheet-tabs { display: flex; gap: 4px; padding: 10px 16px 0; border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; background: var(--bg2); }
+  .excel-tab {
+    padding: 6px 16px; border-radius: 8px 8px 0 0; font-size: 11px; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border); border-bottom: none;
+    background: var(--card); color: var(--muted);
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap; letter-spacing: 0.3px;
+  }
+  .excel-tab.active { background: var(--bg); color: var(--accent2); border-color: var(--accent); }
+  .excel-tab:hover:not(.active) { color: var(--text); background: var(--card2); }
+  .excel-table-wrap { flex: 1; overflow: auto; padding: 0; }
+  .excel-table { border-collapse: collapse; font-size: 12px; min-width: 100%; font-family: 'Syne', monospace; }
+  .excel-table th { background: var(--card2); color: var(--accent2); padding: 8px 14px; border: 1px solid var(--border); font-weight: 700; letter-spacing: 0.5px; text-align: left; position: sticky; top: 0; z-index: 2; white-space: nowrap; font-size: 11px; }
+  .excel-table td { padding: 7px 14px; border: 1px solid var(--border); color: var(--text); white-space: nowrap; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+  .excel-table tr:nth-child(even) td { background: rgba(155,93,229,0.03); }
+  .excel-table tr:hover td { background: rgba(155,93,229,0.08); }
+  .excel-row-num { color: var(--muted); font-size: 10px; text-align: right; background: var(--card2) !important; border-right: 2px solid var(--border) !important; min-width: 36px; padding: 7px 8px !important; user-select: none; }
+  .excel-corner { background: var(--card2); }
+  .excel-loading { display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 12px; color: var(--muted); font-size: 13px; }
+  .excel-spinner { width: 32px; height: 32px; border: 3px solid var(--faint); border-top-color: var(--accent2); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── EXPERIENCE ─── */
+  .experience-list { display: flex; flex-direction: column; gap: 16px; max-width: 800px; }
+  .exp-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 26px; box-shadow: var(--shadow); display: flex; gap: 18px; align-items: flex-start; transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; animation: fadeUp 0.5s both; position: relative; overflow: hidden; }
+  .exp-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--accent), var(--accent3)); border-radius: 2px; opacity: 0; transition: opacity 0.3s; }
+  .exp-card:hover { transform: translateX(5px); box-shadow: var(--shadow-hover); border-color: rgba(155,93,229,0.3); }
+  .exp-card:hover::before { opacity: 1; }
+  .exp-dot { width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .exp-role { font-weight: 700; font-size: 15px; margin-bottom: 3px; color: var(--text); }
+  .exp-company { font-size: 13px; color: var(--accent2); margin-bottom: 4px; font-weight: 500; }
+  .exp-period { font-size: 11px; color: var(--muted); margin-bottom: 10px; letter-spacing: 0.5px; }
+  .exp-desc { font-size: 12.5px; color: var(--muted); line-height: 1.75; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.88) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+  @media (max-width: 1100px) { .projects-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 768px) { main { padding: 12px 14px; } .projects-grid { grid-template-columns: 1fr; } .hero-card { padding: 40px 24px; } }
+</style>
+</head>
+<body>
+
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<!-- ─── SIDEBAR ─── -->
+<aside class="sidebar">
+  <div class="logo">S</div>
+  <nav class="nav-links">
+    <button class="nav-btn active" id="btn-home" onclick="showPage('home',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="nav-tooltip">Home</span>
+    </button>
+    <button class="nav-btn" id="btn-about" onclick="showPage('about',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span class="nav-tooltip">About Me</span>
+    </button>
+    <button class="nav-btn" id="btn-projects" onclick="showPage('projects',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="3"/><path d="M2 9h20M8 3v6M16 3v6"/></svg>
+      <span class="nav-tooltip">My Projects</span>
+    </button>
+    <button class="nav-btn" id="btn-experience" onclick="showPage('experience',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+      <span class="nav-tooltip">My Experience</span>
+    </button>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span class="nav-tooltip">Toggle Theme</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ─── MAIN ─── -->
+<main>
+  <div class="topbar">
+    <div class="profile-chip">
+      <div class="avatar-sm" id="topbarAvatar">SS</div>
+      <div>
+        <div class="profile-name">Sittie Serad</div>
+        <div class="profile-role">CS Student · CCA</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ HOME ═══ -->
+  <div id="page-home" class="page-section active">
+    <div class="hero-wrapper">
+      <div class="hero-card">
+        <div class="corner-glow-bl"></div>
+        <div class="hero-badge"><span>✦</span> Data Analytics Tasks · BS Computer Science</div>
+        <h1 class="hero-title">MY TASK<br>PORTFOLIO</h1>
+        <div class="hero-divider"></div>
+        <p class="hero-subtitle">Welcome to my Task Portfolio 🗂️</p>
+        <p class="hero-desc">
+          This portfolio documents the <strong>step-by-step process</strong> and outputs of tasks completed in the subject <strong>Data Analytics</strong>. It covers practice tasks and midterm outputs focused on <strong>data cleaning</strong>, <strong>data modeling</strong>, and <strong>Power Query</strong> — organized and presented for easy review.
+        </p>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="hero-stat-num">5</div><div class="hero-stat-label">Tasks Done</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">2</div><div class="hero-stat-label">Midterm Labs</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">1</div><div class="hero-stat-label">Subject · Data Analytics</div></div>
+        </div>
+        <button class="hero-cta" onclick="showPage('projects', document.getElementById('btn-projects'))">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="18" rx="3"/><path d="M2 9h20M8 3v6M16 3v6"/></svg>
+          View My Tasks
+        </button>
+        <div class="hero-dots">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ABOUT ═══ -->
+  <div id="page-about" class="page-section">
+    <div class="page-header">
+      <h2 class="section-title">About Me</h2>
+      <p class="section-sub">Get to know the person behind the pixels ✦</p>
+    </div>
+    <div class="about-center-card">
+      <div class="about-hero">
+        <div class="photo-ring" onclick="document.getElementById('photoInputAbout').click()">
+          <div class="photo-ring-inner" id="aboutPhotoInner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" id="photoPlaceholderSvg"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            <span id="photoPlaceholderText">Upload Photo</span>
+          </div>
+          <div class="photo-overlay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Change Photo
+          </div>
+        </div>
+        <input type="file" id="photoInputAbout" accept="image/*" style="display:none" onchange="saveAndPreviewPhoto(event)">
+
+        <div>
+          <div class="about-name">Sittie Aisah Serad</div>
+          <div class="about-degree">BS Computer Science · CCA</div>
+        </div>
+
+        <div class="social-row">
+          <a href="mailto:saserad23-0234@cca.edu.ph" class="social-btn email">
+            <span class="icon">✉</span>
+            saserad23-0234@cca.edu.ph
+          </a>
+          <a href="https://github.com" target="_blank" class="social-btn gh">
+            <span class="icon">🐙</span>
+            GitHub
+          </a>
+        </div>
+
+        <div class="about-divider"></div>
+        <p class="about-bio">
+          I am a Third-year Student <strong>Bachelor of Science in Computer Science</strong> student at <strong>CCA</strong> with a passion for technology and problem-solving. I'm eager to develop my skills in <strong>data management</strong>, systems analysis, and business processes. Currently exploring managerial skills to enhance leadership and decision-making. Always open to learning and new opportunities!
+        </p>
+      </div>
+      <div class="skills-card">
+        <div class="card-label">🛠 My Skills</div>
+        <div class="skills-row">
+          <span class="skill-chip">Systems Analysis</span>
+          <span class="skill-chip">Power Query</span>
+          <span class="skill-chip">Microsoft Excel</span>
+          <span class="skill-chip">Data Cleaning</span>
+          <span class="skill-chip">Data Modeling</span>
+          <span class="skill-chip">Problem Solving</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PROJECTS ═══ -->
+  <div id="page-projects" class="page-section">
+    <div class="page-header">
+      <h2 class="section-title">My Projects</h2>
+      <p class="section-sub">Practice and midterm tasks — organized and uploaded ✦</p>
+    </div>
+    <div class="projects-grid" id="projectsGrid"></div>
+  </div>
+
+  <!-- FILE MODAL -->
+  <div class="modal-overlay" id="fileModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span style="font-size:18px;" id="modalFileIcon">📄</span>
+        <span class="modal-title" id="modalFileName">File</span>
+        <button class="modal-download" id="modalDownloadBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          Download
+        </button>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- ═══ EXPERIENCE ═══ -->
+  <div id="page-experience" class="page-section">
+    <div class="page-header">
+      <h2 class="section-title">My Experience</h2>
+      <p class="section-sub">The journey that shaped who I am today ✦</p>
+    </div>
+    <div class="experience-list">
+      <div class="exp-card" style="animation-delay:0.05s">
+        <div class="exp-dot" style="background:rgba(155,93,229,0.12);">💻</div>
+        <div>
+          <div class="exp-role">Web Developer (Beginner)</div>
+          <div class="exp-company">Self Projects</div>
+          <div class="exp-period">📅 2024 – Present</div>
+          <div class="exp-desc">Developed simple and responsive websites using HTML, CSS, and basic JavaScript. Practiced creating layouts, navigation, and improving user interface design while continuously learning modern web development.</div>
+        </div>
+      </div>
+      <div class="exp-card" style="animation-delay:0.1s">
+        <div class="exp-dot" style="background:rgba(34,197,94,0.1);">📊</div>
+        <div>
+          <div class="exp-role">Excel Data Cleaning</div>
+          <div class="exp-company">Academic / Personal Projects</div>
+          <div class="exp-period">📅 Academic</div>
+          <div class="exp-desc">Performed basic data cleaning using Microsoft Excel, including removing duplicates, organizing datasets, and applying formulas. Focused on improving data accuracy and readability.</div>
+        </div>
+      </div>
+      <div class="exp-card" style="animation-delay:0.15s">
+        <div class="exp-dot" style="background:rgba(249,200,70,0.1);">🐍</div>
+        <div>
+          <div class="exp-role">Python Programming (Basic)</div>
+          <div class="exp-company">Self Learning</div>
+          <div class="exp-period">📅 Self-Paced</div>
+          <div class="exp-desc">Created simple Python programs for basic automation and data handling. Familiar with core concepts such as variables, loops, and file processing.</div>
+        </div>
+      </div>
+      <div class="exp-card" style="animation-delay:0.2s">
+        <div class="exp-dot" style="background:rgba(93,201,148,0.1);">🤖</div>
+        <div>
+          <div class="exp-role">Arduino Coding</div>
+          <div class="exp-company">School Projects</div>
+          <div class="exp-period">📅 School</div>
+          <div class="exp-desc">Built basic Arduino projects such as LED controls and simple sensor-based systems. Gained foundational knowledge in both programming and electronics.</div>
+        </div>
+      </div>
+      <div class="exp-card" style="animation-delay:0.25s">
+        <div class="exp-dot" style="background:rgba(199,125,255,0.1);">🎨</div>
+        <div>
+          <div class="exp-role">UI/UX Design (Figma – Beginner)</div>
+          <div class="exp-company">Personal Practice</div>
+          <div class="exp-period">📅 Personal</div>
+          <div class="exp-desc">Designed simple user interfaces using Figma, focusing on layout, color harmony, and user-friendly design principles.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ════════════════════════════════════════════
+//  INDEXEDDB SETUP — replaces localStorage for large files
+//  Supports files of any size (PDFs, Excel, images, etc.)
+// ════════════════════════════════════════════
+const DB_NAME = 'SittiePortfolioDB';
+const DB_VER  = 1;
+const STORE_FILES = 'projectFiles';
+const STORE_META  = 'meta';
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (db) { resolve(db); return; }
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE_FILES)) {
+        d.createObjectStore(STORE_FILES, { keyPath: 'key' });
+      }
+      if (!d.objectStoreNames.contains(STORE_META)) {
+        d.createObjectStore(STORE_META, { keyPath: 'key' });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror   = e => { console.error('IDB error', e); reject(e); };
+  });
+}
+
+async function idbSet(store, key, value) {
+  const d = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx  = d.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put({ key, value });
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e);
+  });
+}
+
+async function idbGet(store, key) {
+  const d = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx  = d.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = e => resolve(e.target.result ? e.target.result.value : null);
+    req.onerror   = e => reject(e);
+  });
+}
+
+async function idbDelete(store, key) {
+  const d = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx  = d.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e);
+  });
+}
+
+// ════════════════════════════════════════════
+//  PHOTO
+// ════════════════════════════════════════════
+function applyPhoto(dataUrl) {
+  if (!dataUrl) return;
+  const inner = document.getElementById('aboutPhotoInner');
+  const svgEl = document.getElementById('photoPlaceholderSvg');
+  const txtEl = document.getElementById('photoPlaceholderText');
+  if (svgEl) svgEl.style.display = 'none';
+  if (txtEl) txtEl.style.display = 'none';
+  let img = inner.querySelector('img.profile-img');
+  if (!img) { img = document.createElement('img'); img.className = 'profile-img'; inner.appendChild(img); }
+  img.src = dataUrl;
+  const avatarEl = document.getElementById('topbarAvatar');
+  avatarEl.textContent = '';
+  let avatarImg = avatarEl.querySelector('img');
+  if (!avatarImg) { avatarImg = document.createElement('img'); avatarEl.appendChild(avatarImg); }
+  avatarImg.src = dataUrl;
+}
+
+async function saveAndPreviewPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const dataUrl = e.target.result;
+    await idbSet(STORE_META, 'profile_photo', dataUrl);
+    applyPhoto(dataUrl);
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+async function loadSavedPhoto() {
+  try {
+    const saved = await idbGet(STORE_META, 'profile_photo');
+    if (saved) applyPhoto(saved);
+  } catch(e) { /* ignore */ }
+}
+
+// ════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════
+function showPage(page, btn) {
+  document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (btn) btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ════════════════════════════════════════════
+//  THEME TOGGLE
+// ════════════════════════════════════════════
+let isDark = true;
+function toggleTheme() {
+  isDark = !isDark;
+  const root = document.documentElement;
+  if (!isDark) {
+    root.style.setProperty('--bg', '#f2eeff');
+    root.style.setProperty('--bg2', '#ece5ff');
+    root.style.setProperty('--sidebar', '#f8f4ff');
+    root.style.setProperty('--card', '#ffffff');
+    root.style.setProperty('--card2', '#f0eaff');
+    root.style.setProperty('--text', '#1a0d2e');
+    root.style.setProperty('--muted', '#7a6d96');
+    root.style.setProperty('--faint', '#ddd0f5');
+    root.style.setProperty('--border', '#e0d4f5');
+    root.style.setProperty('--shadow', '0 4px 32px rgba(155,93,229,0.12)');
+    root.style.setProperty('--shadow-hover', '0 12px 48px rgba(155,93,229,0.2)');
+    root.style.setProperty('--glow2', 'rgba(155,93,229,0.06)');
+    document.getElementById('themeIcon').innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/>';
+  } else {
+    root.style.setProperty('--bg', '#08070d');
+    root.style.setProperty('--bg2', '#0e0b18');
+    root.style.setProperty('--sidebar', '#0b0914');
+    root.style.setProperty('--card', '#110e1e');
+    root.style.setProperty('--card2', '#160f28');
+    root.style.setProperty('--text', '#e8e0f8');
+    root.style.setProperty('--muted', '#7a6d96');
+    root.style.setProperty('--faint', '#2a2040');
+    root.style.setProperty('--border', '#1e1730');
+    root.style.setProperty('--shadow', '0 4px 32px rgba(0,0,0,0.5)');
+    root.style.setProperty('--shadow-hover', '0 12px 48px rgba(155,93,229,0.25)');
+    root.style.setProperty('--glow2', 'rgba(155,93,229,0.08)');
+    document.getElementById('themeIcon').innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  }
+}
+
+// ════════════════════════════════════════════
+//  PROJECTS — metadata in memory, file data in IndexedDB
+// ════════════════════════════════════════════
+const PROJECT_DEFAULTS = [
+  { id:0, emoji:'📋', bg:'linear-gradient(135deg,#1a0d2e,#2d1459)', tag:'Practice Task 2',  tagColor:'#c77dff', name:'Demo Data Analysis', desc:'Hands-on practice analyzing demo datasets to identify trends, patterns, and key insights using data tools.' },
+  { id:1, emoji:'⚡', bg:'linear-gradient(135deg,#0f0818,#1e0a35)', tag:'Practice Task 3',  tagColor:'#a78bfa', name:'Advanced Excel Functions', desc:'Application of advanced Excel functions including VLOOKUP, INDEX-MATCH, pivot tables, and formula automation.' },
+  { id:2, emoji:'🧹', bg:'linear-gradient(135deg,#100d20,#261545)', tag:'Practice Task 4',  tagColor:'#9b5de5', name:'Data Cleaning and Prep using Power Query', desc:'Practical exercise on transforming raw, messy data into structured, analysis-ready datasets using Power Query.' },
+  { id:3, emoji:'🏗️', bg:'linear-gradient(135deg,#0d1320,#0f2040)', tag:'Midterm Task 1',   tagColor:'#7b8cff', name:'Data Cleaning and Modeling', desc:'Midterm task focused on cleaning datasets and building relational data models for structured reporting.' },
+  { id:4, emoji:'🔄', bg:'linear-gradient(135deg,#1a0d24,#2e0a3e)', tag:'Midterm Lab Task 2',tagColor:'#e07aff', name:'Data Preparation and Modeling using Power Query', desc:'Advanced Power Query lab covering data shaping, merging queries, and building models for analysis.' },
+];
+
+// projects holds metadata only (no dataUrl in memory for large files)
+const projects = PROJECT_DEFAULTS.map(p => ({ ...p, files: [] }));
+
+// ── Persist & load file METADATA (name, size, type, idbKey) via IndexedDB ──
+async function saveMetaToIDB() {
+  const meta = projects.map(p => ({
+    id: p.id,
+    files: p.files.map(f => ({ name: f.name, size: f.size, type: f.type, idbKey: f.idbKey }))
+  }));
+  await idbSet(STORE_META, 'projects_meta', JSON.stringify(meta));
+}
+
+async function loadMetaFromIDB() {
+  try {
+    const raw = await idbGet(STORE_META, 'projects_meta');
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    saved.forEach(s => {
+      const proj = projects.find(p => p.id === s.id);
+      if (proj && Array.isArray(s.files)) proj.files = s.files;
+    });
+  } catch(e) { console.warn('Could not load meta:', e); }
+}
+
+function getFileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return { icon: '📄', cls: 'pdf' };
+  if (['png','jpg','jpeg','gif','webp','svg'].includes(ext)) return { icon: '🖼️', cls: 'img' };
+  if (['doc','docx'].includes(ext)) return { icon: '📝', cls: 'doc' };
+  if (['xls','xlsx','xlsm','xlsb','csv'].includes(ext)) return { icon: '📊', cls: 'xls' };
+  return { icon: '📎', cls: 'other' };
+}
+
+function isExcel(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  return ['xls','xlsx','xlsm','xlsb'].includes(ext);
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
+function renderProjects() {
+  const grid = document.getElementById('projectsGrid');
+  grid.innerHTML = '';
+  projects.forEach((p, idx) => {
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.style.animationDelay = (idx * 0.05 + 0.05) + 's';
+    const fileListHTML = p.files.map((f, fi) => {
+      const {icon, cls} = getFileIcon(f.name);
+      return `<div class="file-item" onclick="openFile(${p.id},${fi})">
+        <div class="file-icon ${cls}">${icon}</div>
+        <div class="file-info"><div class="file-name">${escHtml(f.name)}</div><div class="file-size">${f.size}</div></div>
+        <div class="file-actions" onclick="event.stopPropagation()">
+          <button class="file-btn" title="Preview" onclick="openFile(${p.id},${fi})">👁</button>
+          <button class="file-btn" title="Download" onclick="downloadFile(${p.id},${fi})">⬇</button>
+          <button class="file-btn delete" title="Remove" onclick="removeFile(${p.id},${fi})">🗑</button>
+        </div></div>`;
+    }).join('');
+    card.innerHTML = `
+      <div class="project-thumb" style="background:${p.bg};">${p.emoji}</div>
+      <div class="project-tag" style="color:${p.tagColor};">${p.tag}</div>
+      <div class="project-name">${p.name}</div>
+      <div class="project-desc">${p.desc}</div>
+      <div class="file-attach-area">
+        <span class="file-attach-label">📎 Attached Files</span>
+        ${p.files.length ? `<div class="file-list" id="filelist-${p.id}">${fileListHTML}</div>` : `<div class="file-list" id="filelist-${p.id}"></div>`}
+        <div id="progress-${p.id}"></div>
+        <div class="file-drop-zone"
+             onclick="document.getElementById('fileInput-${p.id}').click()"
+             ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+             ondragleave="this.style.borderColor='var(--faint)'"
+             ondrop="handleDrop(event,${p.id})"
+             style="margin-top:${p.files.length ? '10px' : '0'};">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;margin:0 auto 4px;"><path d="M12 5v14M5 12l7-7 7 7"/><path d="M5 19h14"/></svg>
+          Upload PDF, Excel, image, or any file
+        </div>
+        <input type="file" id="fileInput-${p.id}" style="display:none" multiple
+               accept=".pdf,.doc,.docx,.xls,.xlsx,.xlsm,.xlsb,.csv,.png,.jpg,.jpeg,.gif,.webp,.svg,.txt,.zip"
+               onchange="handleFiles(event,${p.id})">
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function handleFiles(event, projId) {
+  Array.from(event.target.files).forEach(f => addFileToProject(projId, f));
+  event.target.value = '';
+}
+function handleDrop(event, projId) {
+  event.preventDefault();
+  event.currentTarget.style.borderColor = 'var(--faint)';
+  Array.from(event.dataTransfer.files).forEach(f => addFileToProject(projId, f));
+}
+
+function showUploadProgress(projId, fileName) {
+  const el = document.getElementById(`progress-${projId}`);
+  if (!el) return;
+  el.innerHTML = `<div class="upload-progress"><div class="upload-spinner"></div><span>Saving "${escHtml(fileName)}"…</span></div>`;
+}
+function hideUploadProgress(projId) {
+  const el = document.getElementById(`progress-${projId}`);
+  if (el) el.innerHTML = '';
+}
+
+async function addFileToProject(projId, file) {
+  showUploadProgress(projId, file.name);
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const dataUrl = e.target.result;
+    // unique key for IDB
+    const idbKey = `file_${projId}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    // store binary in IDB (no size limit)
+    await idbSet(STORE_FILES, idbKey, dataUrl);
+    // store only metadata in projects array
+    projects[projId].files.push({
+      name: file.name,
+      size: formatSize(file.size),
+      type: file.type,
+      idbKey
+    });
+    await saveMetaToIDB();
+    hideUploadProgress(projId);
+    renderProjects();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function removeFile(projId, fileIdx) {
+  const f = projects[projId].files[fileIdx];
+  // delete binary from IDB
+  if (f.idbKey) await idbDelete(STORE_FILES, f.idbKey);
+  projects[projId].files.splice(fileIdx, 1);
+  await saveMetaToIDB();
+  renderProjects();
+}
+
+async function downloadFile(projId, fileIdx) {
+  const f = projects[projId].files[fileIdx];
+  const dataUrl = await idbGet(STORE_FILES, f.idbKey);
+  if (!dataUrl) { alert('File data not found. It may have been cleared.'); return; }
+  const a = document.createElement('a');
+  a.href = dataUrl; a.download = f.name; a.click();
+}
+
+// ════════════════════════════════════════════
+//  EXCEL PREVIEW
+// ════════════════════════════════════════════
+let excelWorkbook = null;
+let currentSheetName = null;
+
+function renderExcelPreview(dataUrl) {
+  const body = document.getElementById('modalBody');
+  body.innerHTML = `<div class="excel-loading"><div class="excel-spinner"></div><span>Reading Excel file…</span></div>`;
+  setTimeout(() => {
+    try {
+      const base64 = dataUrl.split(',')[1];
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const wb = XLSX.read(bytes, { type: 'array' });
+      excelWorkbook = wb;
+      currentSheetName = wb.SheetNames[0];
+      buildExcelUI(wb);
+    } catch(err) {
+      body.innerHTML = `<div class="modal-unsupported"><div class="big-icon">📊</div><p>Could not read this Excel file.<br><small style="color:var(--muted)">${err.message}</small></p></div>`;
+    }
+  }, 50);
+}
+
+function buildExcelUI(wb) {
+  const body = document.getElementById('modalBody');
+  const tabsHTML = wb.SheetNames.map(name =>
+    `<div class="excel-tab${name === currentSheetName ? ' active' : ''}" onclick="switchSheet('${name.replace(/'/g,"\\'")}',this)">${escHtml(name)}</div>`
+  ).join('');
+  body.innerHTML = `
+    <div class="excel-preview-wrap">
+      <div class="excel-sheet-tabs">${tabsHTML}</div>
+      <div class="excel-table-wrap" id="excelTableWrap"></div>
+    </div>`;
+  renderSheet(currentSheetName);
+}
+
+function switchSheet(name, tabEl) {
+  currentSheetName = name;
+  document.querySelectorAll('.excel-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  renderSheet(name);
+}
+
+function renderSheet(name) {
+  const ws = excelWorkbook.Sheets[name];
+  const wrap = document.getElementById('excelTableWrap');
+  if (!ws) { wrap.innerHTML = '<div style="padding:24px;color:var(--muted)">Empty sheet.</div>'; return; }
+  const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  if (!data.length) { wrap.innerHTML = '<div style="padding:24px;color:var(--muted)">No data found in this sheet.</div>'; return; }
+  const headers = data[0];
+  const rows = data.slice(1);
+  const colsHTML = `<col style="width:40px">` + headers.map(() => `<col style="min-width:100px">`).join('');
+  const headHTML = `<tr><th class="excel-corner">#</th>${headers.map(h => `<th>${escHtml(String(h))}</th>`).join('')}</tr>`;
+  const bodyHTML = rows.map((row, ri) =>
+    `<tr><td class="excel-row-num">${ri + 1}</td>${headers.map((_,ci) => `<td>${escHtml(String(row[ci] ?? ''))}</td>`).join('')}</tr>`
+  ).join('');
+  wrap.innerHTML = `<table class="excel-table"><colgroup>${colsHTML}</colgroup><thead>${headHTML}</thead><tbody>${bodyHTML}</tbody></table>`;
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════
+//  FILE MODAL
+// ════════════════════════════════════════════
+let currentFile = null;
+let currentProjId = null;
+let currentFileIdx = null;
+
+async function openFile(projId, fileIdx) {
+  const f = projects[projId].files[fileIdx];
+  currentFile = f;
+  currentProjId = projId;
+  currentFileIdx = fileIdx;
+
+  const {icon} = getFileIcon(f.name);
+  document.getElementById('modalFileIcon').textContent = icon;
+  document.getElementById('modalFileName').textContent = f.name;
+  const body = document.getElementById('modalBody');
+  body.innerHTML = `<div class="excel-loading"><div class="excel-spinner"></div><span>Loading file…</span></div>`;
+  excelWorkbook = null;
+
+  // Load data from IDB
+  const dataUrl = await idbGet(STORE_FILES, f.idbKey);
+  if (!dataUrl) {
+    body.innerHTML = `<div class="modal-unsupported"><div class="big-icon">⚠️</div><p>File data not found. It may have been cleared by the browser.</p></div>`;
+    document.getElementById('fileModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    return;
+  }
+
+  const ext = f.name.split('.').pop().toLowerCase();
+  if (f.type === 'application/pdf' || ext === 'pdf') {
+    const iframe = document.createElement('iframe');
+    iframe.src = dataUrl; iframe.style.width = '100%'; iframe.style.height = '100%'; iframe.style.border = 'none';
+    body.innerHTML = ''; body.appendChild(iframe);
+  } else if (['png','jpg','jpeg','gif','webp','svg'].includes(ext)) {
+    const img = document.createElement('img');
+    img.src = dataUrl; img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;padding:16px;';
+    body.innerHTML = ''; body.appendChild(img);
+  } else if (ext === 'txt') {
+    const pre = document.createElement('pre');
+    pre.style.cssText = 'width:100%;height:100%;overflow:auto;padding:24px;font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-word;font-family:monospace;';
+    try { pre.textContent = atob(dataUrl.split(',')[1]); } catch(e) { pre.textContent = 'Could not decode.'; }
+    body.innerHTML = ''; body.appendChild(pre);
+  } else if (isExcel(f.name)) {
+    renderExcelPreview(dataUrl);
+  } else {
+    body.innerHTML = `<div class="modal-unsupported"><div class="big-icon">${icon}</div><p><strong>${escHtml(f.name)}</strong><br>This file type cannot be previewed.<br>Click Download to open it.</p><button class="modal-download" style="margin:0 auto;" onclick="downloadFile(${projId},${fileIdx})">⬇ Download</button></div>`;
+  }
+  document.getElementById('fileModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('fileModal').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('modalBody').innerHTML = '';
+  currentFile = null; currentProjId = null; currentFileIdx = null;
+  excelWorkbook = null;
+}
+
+document.getElementById('modalDownloadBtn').addEventListener('click', () => {
+  if (currentProjId !== null && currentFileIdx !== null) {
+    downloadFile(currentProjId, currentFileIdx);
+  }
+});
+document.getElementById('fileModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+async function init() {
+  await openDB();
+  await loadMetaFromIDB();
+  await loadSavedPhoto();
+  renderProjects();
+}
+
+init();
+</script>
+</body>
+</html>
